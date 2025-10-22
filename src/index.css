@@ -1,0 +1,131 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    --background: 140 20% 12%;
+    --foreground: 45 100% 95%;
+
+    --card: 140 25% 15%;
+    --card-foreground: 45 100% 95%;
+
+    --popover: 140 30% 10%;
+    --popover-foreground: 45 100% 95%;
+
+    --primary: 45 85% 55%;
+    --primary-foreground: 140 30% 10%;
+
+    --secondary: 140 20% 20%;
+    --secondary-foreground: 45 100% 95%;
+
+    --muted: 140 15% 18%;
+    --muted-foreground: 45 20% 70%;
+
+    --accent: 45 85% 55%;
+    --accent-foreground: 140 30% 10%;
+
+    --destructive: 0 70% 50%;
+    --destructive-foreground: 45 100% 95%;
+
+    --border: 140 20% 25%;
+    --input: 140 20% 25%;
+    --ring: 45 85% 55%;
+
+    --radius: 0.25rem;
+
+    --odds-up: 120 60% 45%;
+    --odds-down: 0 70% 50%;
+    --odds-neutral: 45 20% 60%;
+    
+    --race-header: 140 25% 18%;
+    --race-row: 140 20% 14%;
+    --race-row-alt: 140 22% 16%;
+
+    /* Text Zoom System - 5 font sizes */
+    --text-zoom: 1;
+    
+    /* Title Size: 1.5rem base */
+    --font-title: calc(1.5rem * var(--text-zoom));
+    
+    /* Button/Label Size: 1rem base */
+    --font-button: calc(1rem * var(--text-zoom));
+    
+    /* Table Numbers Size: 0.875rem base */
+    --font-table: calc(0.875rem * var(--text-zoom));
+    
+    /* Time Text Size: 0.75rem base */
+    --font-time: calc(0.75rem * var(--text-zoom));
+    
+    /* Other Text Size: 0.875rem base */
+    --font-other: calc(0.875rem * var(--text-zoom));
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  /* Modern slim scrollbar styles */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: hsl(var(--background));
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--border));
+    border-radius: 4px;
+    transition: background 0.2s ease;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.5);
+  }
+
+  ::-webkit-scrollbar-thumb:active {
+    background: hsl(var(--primary) / 0.6);
+  }
+
+  /* Firefox scrollbar */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: hsl(var(--border)) hsl(var(--background));
+  }
+}
+
+/* Font size utility classes */
+@layer utilities {
+  .text-title {
+    font-size: var(--font-title);
+  }
+
+  .text-button {
+    font-size: var(--font-button);
+  }
+
+  .text-table {
+    font-size: var(--font-table);
+  }
+
+  .text-time {
+    font-size: var(--font-time);
+  }
+
+  .text-other {
+    font-size: var(--font-other);
+  }
+}

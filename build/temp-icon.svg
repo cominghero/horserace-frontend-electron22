@@ -1,0 +1,20 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="512" height="512" rx="80" fill="#1a1a1a"/>
+
+  <!-- Horse silhouette -->
+  <path d="M380 180c-20-30-50-40-80-35-15 2-28 8-38 18-8-25-25-45-50-55-30-12-65-8-90 15-20 18-30 45-25 72 2 12 6 23 12 33-15 10-25 28-25 47 0 32 26 58 58 58 15 0 29-6 39-16 15 20 38 33 65 33 28 0 52-14 67-35 8 8 19 13 31 13 25 0 45-20 45-45 0-18-10-33-25-41 8-15 12-32 12-50 0-4-1-8-1-12z" fill="#f59e0b" stroke="#fbbf24" stroke-width="3"/>
+
+  <!-- Racing flag pattern -->
+  <g transform="translate(100, 320)">
+    <rect x="0" y="0" width="40" height="40" fill="#ffffff"/>
+    <rect x="40" y="0" width="40" height="40" fill="#000000"/>
+    <rect x="0" y="40" width="40" height="40" fill="#000000"/>
+    <rect x="40" y="40" width="40" height="40" fill="#ffffff"/>
+    <rect x="80" y="0" width="40" height="40" fill="#ffffff"/>
+    <rect x="80" y="40" width="40" height="40" fill="#000000"/>
+  </g>
+
+  <!-- Letter H R -->
+  <text x="256" y="420" font-family="Arial, sans-serif" font-size="80" font-weight="bold" fill="#fbbf24" text-anchor="middle">HR</text>
+</svg>
