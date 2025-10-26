@@ -4,6 +4,7 @@ interface ScrapedHorse {
   rank: number;
   horseNumber: string;
   horseName: string;
+  jockey: string;
   odds: {
     open: string;
     fluc1: string;
@@ -51,13 +52,14 @@ export const transformScrapedData = (
       const roundNumber = raceNumberMatch ? parseInt(raceNumberMatch[0]) : 0;
 
       // Convert scraped horses to the expected format
-      // Use "placeFixed" odds as the display odds (as per requirement)
+      // Use "winFixed" odds as the display odds
       const horses = race.horses.map((horse) => ({
         number: parseInt(horse.horseNumber) || 0,      // No: Horse saddle number
         position: horse.rank,                           // Position: Horse ranking/order
-        odds: parseFloat(horse.odds.placeFixed) || 0,  // Odds: Place fixed odds
+        odds: parseFloat(horse.odds.winFixed) || 0,    // Odds: Win fixed odds
         previousOdds: undefined,                        // Scraped data doesn't have previous odds
         name: horse.horseName,                          // Name: Horse name from scraped data
+        jockey: horse.jockey || 'N/A',                 // Jockey: Jockey name from scraped data
       }));
 
       return {

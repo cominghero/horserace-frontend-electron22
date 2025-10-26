@@ -3,15 +3,19 @@ import { Button } from "@/components/ui/button";
 import { Loader2, RefreshCw } from "lucide-react";
 
 interface ScrapeButtonProps {
-  onDataFetched: (data: any) => void;
+  onDataFetched: (data: any, title: string) => void;
+  isGlobalLoading: boolean;
+  setIsGlobalLoading: (loading: boolean) => void;
+  disabled?: boolean;
 }
 
-export const ScrapeButton = ({ onDataFetched }: ScrapeButtonProps) => {
+export const ScrapeButton = ({ onDataFetched, isGlobalLoading, setIsGlobalLoading, disabled = false }: ScrapeButtonProps) => {
   const [hasScraped, setHasScraped] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isThisButtonLoading, setIsThisButtonLoading] = useState(false);
 
   const handleScrape = async () => {
-    setIsLoading(true);
+    setIsGlobalLoading(true);
+    setIsThisButtonLoading(true);
     try {
       const response = await fetch("http://localhost:5000/api/scrape/all-races", {
         method: "POST",
@@ -27,7 +31,7 @@ export const ScrapeButton = ({ onDataFetched }: ScrapeButtonProps) => {
       
       if (result.data && Array.isArray(result.data)) {
         console.log("✅ Scraped data received:", result.data);
-        onDataFetched(result.data);
+        onDataFetched(result.data, "Today's Result");
         setHasScraped(true);
       } else {
         console.error("❌ Invalid response format. Expected result.data as array:", result);
@@ -36,7 +40,8 @@ export const ScrapeButton = ({ onDataFetched }: ScrapeButtonProps) => {
       console.error("Scraping failed:", error);
       alert("Failed to scrape races. Check console for details.");
     } finally {
-      setIsLoading(false);
+      setIsGlobalLoading(false);
+      setIsThisButtonLoading(false);
     }
   };
 
@@ -46,11 +51,11 @@ export const ScrapeButton = ({ onDataFetched }: ScrapeButtonProps) => {
     <div className="flex items-center gap-2">
       <Button
         onClick={handleScrape}
-        disabled={isLoading}
+        disabled={isGlobalLoading || disabled}
         className="font-semibold tracking-wide"
         size="default"
       >
-        {isLoading ? (
+        {isThisButtonLoading ? (
           <>
             <Loader2 className="w-4 h-4 mr-2 animate-spin" />
             Scraping...
@@ -63,7 +68,7 @@ export const ScrapeButton = ({ onDataFetched }: ScrapeButtonProps) => {
         )}
       </Button>
 
-      {isLoading && (
+      {isThisButtonLoading && (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <div className="flex gap-1">
             <div className="w-2 h-2 bg-primary rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />

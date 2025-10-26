@@ -6,6 +6,7 @@ export interface Favorite {
   time: string;
   horseNumber: number;
   horseName?: string;
+  jockey?: string;
   position: number;
   odds: number;
   previousOdds?: number;
@@ -37,21 +38,32 @@ export const MarketMovers = ({ favorites }: MarketMoversProps) => {
                 {fav.racecourse}
                 
               </div>
-              <div className="flex items-center justify-between gap-3 text-time">
-                <div className="flex items-center gap-2 text-muted-foreground font-mono">
+              <div className="flex items-center justify-between gap-2 text-time">
+                <div className="flex items-center gap-2 text-muted-foreground font-mono flex-shrink-0">
                   <span>R{fav.round}</span>
                   <span className="text-primary">{fav.time}</span>
                 </div>
-                
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  {fav.horseName && (
-                    <span className="text-muted-foreground truncate max-w-20">{fav.horseName}</span>
-                  )}
-                  <span className="font-mono font-semibold text-foreground whitespace-nowrap">#{fav.horseNumber}</span>
-                  <span className="text-muted-foreground whitespace-nowrap">{fav.position}{fav.position === 1 ? 'st' : fav.position === 2 ? 'nd' : fav.position === 3 ? 'rd' : 'th'}</span>
-                  <span className="font-mono font-bold text-primary whitespace-nowrap">
-                    ${fav.odds.toFixed(2)}
-                  </span>
+
+                <div className="flex items-center gap-2 flex-1 min-w-0">
+                  <div className="flex items-center gap-1 flex-1 min-w-0">
+                    {fav.horseName && (
+                      <span className="text-muted-foreground truncate flex-shrink" title={fav.horseName}>
+                        {fav.horseName}
+                      </span>
+                    )}
+                    {fav.jockey && (
+                      <span className="text-muted-foreground/70 truncate flex-shrink text-xs" title={fav.jockey}>
+                        ({fav.jockey})
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <span className="font-mono font-semibold text-foreground whitespace-nowrap">#{fav.horseNumber}</span>
+                    <span className="text-muted-foreground whitespace-nowrap">{fav.position}{fav.position === 1 ? 'st' : fav.position === 2 ? 'nd' : fav.position === 3 ? 'rd' : 'th'}</span>
+                    <span className="font-mono font-bold text-primary whitespace-nowrap">
+                      ${fav.odds.toFixed(2)}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
