@@ -23,18 +23,7 @@ const Index = () => {
   // AbortController to cancel ongoing fetch requests
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  // Remove mock data initialization - start with empty data
-  // useEffect(() => {
-  //   // Initialize data for all racecourses
-  //   const data = racecourses.map(rc => ({
-  //     name: rc.name,
-  //     rounds: generateMockRounds(rc.startHour, rc.rounds)
-  //   }));
-  //   setRacecourseData(data);
-  // }, []);
-
   const toggleRacecourse = (name) => {
-    // console.log('aaaaaaaaaaaaaaaa',name);
     
     setActiveRacecourses(prev => {
       const newSet = new Set(prev);
@@ -213,12 +202,7 @@ const Index = () => {
               >
                 {rc.name}
               </Button>
-            ))
-
-            // <Button onClick={() => toggleRacecourse(displayData)}
-            // >test</Button>
-            }
-           
+            ))}
           </div>
           
           

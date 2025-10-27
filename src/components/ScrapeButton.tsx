@@ -20,8 +20,7 @@ export const ScrapeButton = ({ onDataFetched, isGlobalLoading, setIsGlobalLoadin
       const response = await fetch("http://localhost:5000/api/scrape/all-races", {
         method: "POST",
       });
-      console.log('cccccccccccc',response);
-      
+
       if (!response.ok) {
         throw new Error(`API error: ${response.statusText}`);
       }

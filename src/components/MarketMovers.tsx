@@ -18,6 +18,17 @@ interface MarketMoversProps {
 }
 
 export const MarketMovers = ({ favorites }: MarketMoversProps) => {
+  // Sort favorites by time (earliest to latest)
+  const sortedFavorites = [...favorites].sort((a, b) => {
+    // Convert time string "HH:MM" to minutes for comparison
+    const timeToMinutes = (timeStr: string) => {
+      const [hours, minutes] = timeStr.split(':').map(Number);
+      return hours * 60 + minutes;
+    };
+
+    return timeToMinutes(a.time) - timeToMinutes(b.time);
+  });
+
   return (
     <div className="bg-card border border-border rounded-sm overflow-hidden h-full flex flex-col">
       <div className="bg-race-header px-4 py-3 border-b border-border">
@@ -26,10 +37,10 @@ export const MarketMovers = ({ favorites }: MarketMoversProps) => {
           <h3 className="font-semibold text-primary text-button tracking-wide uppercase">Market Movers</h3>
         </div>
       </div>
-      
+
       <div className="flex-1 overflow-y-auto">
         <div className="p-3 space-y-2">
-          {favorites.map((fav, idx) => (
+          {sortedFavorites.map((fav, idx) => (
             <div
               key={`${fav.racecourse}-${fav.round}-${idx}`}
               className="bg-secondary/30 border border-border/50 rounded-sm p-2 hover:bg-secondary/50 transition-colors"
@@ -61,7 +72,7 @@ export const MarketMovers = ({ favorites }: MarketMoversProps) => {
                     <span className="font-mono font-semibold text-foreground whitespace-nowrap">#{fav.horseNumber}</span>
                     <span className="text-muted-foreground whitespace-nowrap">{fav.position}{fav.position === 1 ? 'st' : fav.position === 2 ? 'nd' : fav.position === 3 ? 'rd' : 'th'}</span>
                     <span className="font-mono font-bold text-primary whitespace-nowrap">
-                      ${fav.odds.toFixed(2)}
+                      {fav.odds === 0 ? '-' : `$${fav.odds.toFixed(2)}`}
                     </span>
                   </div>
                 </div>

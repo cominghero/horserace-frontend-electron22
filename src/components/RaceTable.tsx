@@ -60,6 +60,11 @@ export const RaceTable = ({ racecourse, rounds, horseNumberFilter = "" }: RaceTa
     return sorted;
   };
 
+  // Get horses with valid odds (not 0) for T2/T3/Top3 calculations
+  const getHorsesWithValidOdds = (horses: Horse[]) => {
+    return getSortedHorses(horses).filter(horse => horse.odds > 0);
+  };
+
   return (
     <div className="bg-card border border-border rounded-sm overflow-hidden">
       <div className="bg-race-header px-3 py-2 border-b border-border">
@@ -139,7 +144,7 @@ export const RaceTable = ({ racecourse, rounds, horseNumberFilter = "" }: RaceTa
                         {horse.jockey || 'N/A'}
                       </td>
                       <td className="px-1 py-1.5 text-center font-mono font-semibold text-primary border-r border-border">
-                        ${horse.odds.toFixed(2)}
+                        {horse.odds === 0 ? '-' : `$${horse.odds.toFixed(2)}`}
                       </td>
                     </React.Fragment>
                   );
@@ -147,13 +152,13 @@ export const RaceTable = ({ racecourse, rounds, horseNumberFilter = "" }: RaceTa
               </tr>
             ))}
             
-            {/* T2 Row - Dutch betting on top 2 from displayed horses (only show if at least 2 horses) */}
-            {rounds.some(round => getSortedHorses(round.horses).length >= 2) && (
+            {/* T2 Row - Dutch betting on top 2 from displayed horses (only show if at least 2 horses with valid odds) */}
+            {rounds.some(round => getHorsesWithValidOdds(round.horses).length >= 2) && (
               <tr className="bg-secondary/20 border-t border-border">
                 <td className="px-2 py-1.5 border-r border-border font-semibold text-accent text-table">T2</td>
                 {rounds.map((round) => {
-                  const sortedHorses = getSortedHorses(round.horses);
-                  const top2Odds = sortedHorses.slice(0, 2).map(h => h.odds);
+                  const horsesWithValidOdds = getHorsesWithValidOdds(round.horses);
+                  const top2Odds = horsesWithValidOdds.slice(0, 2).map(h => h.odds);
                   const t2Profit = calculateDutchProfit(top2Odds);
 
                   return (
@@ -165,7 +170,7 @@ export const RaceTable = ({ racecourse, rounds, horseNumberFilter = "" }: RaceTa
                       <td className={`px-1 py-1.5 text-center font-mono font-semibold border-r border-border text-table ${
                         t2Profit >= 0 ? 'text-green-500' : 'text-red-500'
                       }`}>
-                        {sortedHorses.length >= 2 ? `${t2Profit >= 0 ? '+' : ''}${t2Profit.toFixed(1)}%` : '-'}
+                        {horsesWithValidOdds.length >= 2 ? `${t2Profit >= 0 ? '+' : ''}${t2Profit.toFixed(1)}%` : '-'}
                       </td>
                     </React.Fragment>
                   );
@@ -173,13 +178,13 @@ export const RaceTable = ({ racecourse, rounds, horseNumberFilter = "" }: RaceTa
               </tr>
             )}
 
-            {/* T3 Row - Dutch betting on top 3 from displayed horses (only show if at least 3 horses) */}
-            {rounds.some(round => getSortedHorses(round.horses).length >= 3) && (
+            {/* T3 Row - Dutch betting on top 3 from displayed horses (only show if at least 3 horses with valid odds) */}
+            {rounds.some(round => getHorsesWithValidOdds(round.horses).length >= 3) && (
               <tr className="bg-secondary/20">
                 <td className="px-2 py-1.5 border-r border-border font-semibold text-accent text-table">T3</td>
                 {rounds.map((round) => {
-                  const sortedHorses = getSortedHorses(round.horses);
-                  const top3Odds = sortedHorses.slice(0, 3).map(h => h.odds);
+                  const horsesWithValidOdds = getHorsesWithValidOdds(round.horses);
+                  const top3Odds = horsesWithValidOdds.slice(0, 3).map(h => h.odds);
                   const t3Profit = calculateDutchProfit(top3Odds);
 
                   return (
@@ -191,7 +196,7 @@ export const RaceTable = ({ racecourse, rounds, horseNumberFilter = "" }: RaceTa
                       <td className={`px-1 py-1.5 text-center font-mono font-semibold border-r border-border text-table ${
                         t3Profit >= 0 ? 'text-green-500' : 'text-red-500'
                       }`}>
-                        {sortedHorses.length >= 3 ? `${t3Profit >= 0 ? '+' : ''}${t3Profit.toFixed(1)}%` : '-'}
+                        {horsesWithValidOdds.length >= 3 ? `${t3Profit >= 0 ? '+' : ''}${t3Profit.toFixed(1)}%` : '-'}
                       </td>
                     </React.Fragment>
                   );
@@ -199,13 +204,13 @@ export const RaceTable = ({ racecourse, rounds, horseNumberFilter = "" }: RaceTa
               </tr>
             )}
 
-            {/* Top3 Row - Shows top 3 horse numbers in comma-separated format */}
-            {rounds.some(round => getSortedHorses(round.horses).length >= 3) && (
+            {/* Top3 Row - Shows top 3 horse numbers in comma-separated format (only horses with valid odds) */}
+            {rounds.some(round => getHorsesWithValidOdds(round.horses).length >= 3) && (
               <tr className="bg-secondary/30 border-t border-border">
                 <td className="px-2 py-1.5 border-r border-border font-semibold text-accent text-table">Top3</td>
                 {rounds.map((round) => {
-                  const sortedHorses = getSortedHorses(round.horses);
-                  const top3Numbers = sortedHorses.slice(0, 3).map(h => h.number).join(',');
+                  const horsesWithValidOdds = getHorsesWithValidOdds(round.horses);
+                  const top3Numbers = horsesWithValidOdds.slice(0, 3).map(h => h.number).join(',');
 
                   return (
                     <React.Fragment key={`top3-${round.roundNumber}`}>
@@ -214,7 +219,7 @@ export const RaceTable = ({ racecourse, rounds, horseNumberFilter = "" }: RaceTa
                       <td className="px-1 py-1.5 border-r border-border/50"></td>
                       <td className="px-1 py-1.5 border-r border-border/50"></td>
                       <td className="px-1 py-1.5 text-center font-mono font-semibold border-r border-border text-table text-foreground">
-                        {sortedHorses.length >= 3 ? top3Numbers : '-'}
+                        {horsesWithValidOdds.length >= 3 ? top3Numbers : '-'}
                       </td>
                     </React.Fragment>
                   );

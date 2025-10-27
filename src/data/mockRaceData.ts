@@ -51,10 +51,18 @@ export const generateFavorites = (racecourseData: { name: string; rounds: Round[
   racecourseData.forEach(({ name, rounds }) => {
     rounds.forEach((round) => {
       if (round.horses.length > 0) {
-        // Find horse with lowest odds (favorite)
-        const favorite = round.horses.reduce((lowest, horse) =>
+        // Filter out horses with 0 odds
+        const horsesWithValidOdds = round.horses.filter(horse => horse.odds > 0);
+
+        // Skip if no horses have valid odds
+        if (horsesWithValidOdds.length === 0) {
+          return;
+        }
+
+        // Find horse with lowest odds (favorite) from horses with valid odds
+        const favorite = horsesWithValidOdds.reduce((lowest, horse) =>
           horse.odds < lowest.odds ? horse : lowest
-        , round.horses[0]);
+        , horsesWithValidOdds[0]);
 
         const movement = favorite.previousOdds
           ? favorite.odds < favorite.previousOdds
@@ -81,6 +89,6 @@ export const generateFavorites = (racecourseData: { name: string; rounds: Round[
   });
 
   // Return horse with lowest odds from each round (the favorite)
-  // One favorite per round per racetrack
+  // One favorite per round per racetrack (excluding horses with 0 odds)
   return favorites;
 };
