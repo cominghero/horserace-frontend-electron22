@@ -226,6 +226,29 @@ export const RaceTable = ({ racecourse, rounds, horseNumberFilter = "" }: RaceTa
                 })}
               </tr>
             )}
+
+            {/* Top6 Row - Shows top 6 horse numbers in comma-separated format (only horses with valid odds) */}
+            {rounds.some(round => getHorsesWithValidOdds(round.horses).length >= 6) && (
+              <tr className="bg-secondary/30">
+                <td className="px-2 py-1.5 border-r border-border font-semibold text-accent text-table">Top6</td>
+                {rounds.map((round) => {
+                  const horsesWithValidOdds = getHorsesWithValidOdds(round.horses);
+                  const top6Numbers = horsesWithValidOdds.slice(0, 6).map(h => h.number).join(',');
+
+                  return (
+                    <React.Fragment key={`top6-${round.roundNumber}`}>
+                      <td className="px-1 py-1.5 border-r border-border/50"></td>
+                      <td className="px-1 py-1.5 border-r border-border/50"></td>
+                      <td className="px-1 py-1.5 border-r border-border/50"></td>
+                      <td className="px-1 py-1.5 border-r border-border/50"></td>
+                      <td className="px-1 py-1.5 text-center font-mono font-semibold border-r border-border text-table text-foreground">
+                        {horsesWithValidOdds.length >= 6 ? top6Numbers : '-'}
+                      </td>
+                    </React.Fragment>
+                  );
+                })}
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
