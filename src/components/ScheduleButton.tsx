@@ -7,6 +7,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Loader2, Calendar, ChevronDown } from "lucide-react";
+import { API_BASE_URL } from "@/config/api";
 
 interface ScheduleButtonProps {
   onDataFetched: (data: any, title: string) => void;
@@ -62,7 +63,7 @@ export const ScheduleButton = ({ onDataFetched, isGlobalLoading, setIsGlobalLoad
     setSelectedOption(label);
 
     try {
-      const response = await fetch(`http://localhost:5000/api/scrape/upcoming/${dateValue}`, {
+      const response = await fetch(`${API_BASE_URL}/api/scrape/upcoming/${dateValue}`, {
         method: "POST",
       });
 

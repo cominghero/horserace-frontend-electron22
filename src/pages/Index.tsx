@@ -10,6 +10,7 @@ import { racecourses, generateMockRounds, generateFavorites } from "@/data/mockR
 import { transformScrapedData } from "@/lib/transformScrapedData";
 import { downloadDashboardData } from "@/lib/downloadExcel";
 import { Activity, Download } from "lucide-react";
+import { API_BASE_URL } from "@/config/api";
 
 const Index = () => {
   const [activeRacecourses, setActiveRacecourses] = useState<Set<string>>(new Set());
@@ -71,7 +72,7 @@ const Index = () => {
 
     setIsGlobalLoading(true);
     try {
-      const response = await fetch("http://localhost:5000/api/scrape/all-races", {
+      const response = await fetch(`${API_BASE_URL}/api/scrape/all-races`, {
         method: "POST",
         signal: abortControllerRef.current.signal,
       });

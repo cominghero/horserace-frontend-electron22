@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Loader2, RefreshCw } from "lucide-react";
+import { API_BASE_URL } from "@/config/api";
 
 interface ScrapeButtonProps {
   onDataFetched: (data: any, title: string) => void;
@@ -17,7 +18,7 @@ export const ScrapeButton = ({ onDataFetched, isGlobalLoading, setIsGlobalLoadin
     setIsGlobalLoading(true);
     setIsThisButtonLoading(true);
     try {
-      const response = await fetch("http://localhost:5000/api/scrape/all-races", {
+      const response = await fetch(`${API_BASE_URL}/api/scrape/all-races`, {
         method: "POST",
       });
 

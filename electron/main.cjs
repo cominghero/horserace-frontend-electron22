@@ -168,7 +168,12 @@ function createWindow() {
 
 // When Electron has finished initialization
 app.whenReady().then(() => {
-  // Start servers
+  console.log('=== Horse Racing Dashboard Starting ===');
+  console.log('Using local bundled backend');
+  console.log('Platform:', process.platform);
+  console.log('Is packaged:', app.isPackaged);
+
+  // Start the local backend server (bundled with app)
   startBackend();
 
   if (!isDev) {
