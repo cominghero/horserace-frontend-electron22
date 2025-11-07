@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { RaceTable } from "@/components/RaceTable";
 import { MarketMovers } from "@/components/MarketMovers";
+import { WinnersPanel } from "@/components/WinnersPanel";
 import { Button } from "@/components/ui/button";
 import { ScrapeButton } from "@/components/ScrapeButton";
 import { ScheduleButton } from "@/components/ScheduleButton";
@@ -20,6 +21,10 @@ const Index = () => {
   const [dataTitle, setDataTitle] = useState<string>("");
   const [isGlobalLoading, setIsGlobalLoading] = useState<boolean>(false);
   const [isTimerActive, setIsTimerActive] = useState<boolean>(false);
+  const [isInitialLoad, setIsInitialLoad] = useState<boolean>(true);
+  const [isScheduleView, setIsScheduleView] = useState<boolean>(false);
+  const [isWinnersPanelLoading, setIsWinnersPanelLoading] = useState<boolean>(false);
+  const [winnersData, setWinnersData] = useState<any[]>([]);
 
   // AbortController to cancel ongoing fetch requests
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -38,8 +43,11 @@ const Index = () => {
   };
 
   const handleDataFetched = (data: any, title: string) => {
+    // Determine if this is a schedule view
+    const isSchedule = title.includes("Schedule");
+    
     // Transform scraped data to the expected format
-    const transformed = transformScrapedData(data);
+    const transformed = transformScrapedData(data, isSchedule);
     console.log("✨ Transformed data:", transformed);
 
     // Verify structure
@@ -51,6 +59,9 @@ const Index = () => {
 
     setScrapedData(transformed);
     setDataTitle(title);
+    
+    // Hide right side if viewing schedule (upcoming races)
+    setIsScheduleView(isSchedule);
 
     // Auto-select first track if available
     if (transformed.length > 0) {
@@ -111,12 +122,72 @@ const Index = () => {
     }
   };
 
+  // Auto-scrape on app startup
+  useEffect(() => {
+    const autoScrapeOnStartup = async () => {
+      console.log("🚀 App started - auto-scraping races and winners...");
+      setIsGlobalLoading(true);
+      
+      try {
+        // Create new AbortController for startup request
+        abortControllerRef.current = new AbortController();
+
+        const response = await fetch(`${API_BASE_URL}/api/scrape/all-races`, {
+          method: "POST",
+          signal: abortControllerRef.current.signal,
+        });
+
+        if (!response.ok) {
+          throw new Error(`API error: ${response.statusText}`);
+        }
+
+        const result = await response.json();
+
+        if (result.data && Array.isArray(result.data)) {
+          handleDataFetched(result.data, "Today's Result");
+        }
+      } catch (error: any) {
+        if (error.name === 'AbortError') {
+          console.log("🛑 Startup scrape was cancelled");
+        } else {
+          console.error("Startup scrape failed:", error);
+        }
+      } finally {
+        setIsGlobalLoading(false);
+        setIsInitialLoad(false);
+        abortControllerRef.current = null;
+      }
+    };
+
+    // Only run once on mount
+    if (isInitialLoad) {
+      autoScrapeOnStartup();
+    }
+  }, []); // Empty dependency array - run only once on mount
+
   // Use scraped data if available and not empty, otherwise use mock data
   const displayData = (scrapedData && scrapedData.length > 0) ? scrapedData : racecourseData;
-  const favorites = generateFavorites(displayData.filter(rc => activeRacecourses.has(rc.name)));
+  
+  // Filter out racecourses with no races (empty rounds or no horses in any round)
+  const racecourcesWithRaces = displayData.filter(rc => 
+    rc.rounds && rc.rounds.length > 0 && 
+    rc.rounds.some(round => round.horses && round.horses.length > 0)
+  );
+  
+  const favorites = generateFavorites(racecourcesWithRaces.filter(rc => activeRacecourses.has(rc.name)));
 
   return (
     <div className="min-h-screen bg-background p-2 sm:p-4 font-sans w-full">
+      {/* Startup Loading Indicator */}
+      {isInitialLoad && isGlobalLoading && (
+        <div className="mb-4 bg-blue-500/10 border border-blue-500/50 rounded-sm p-3 flex items-center gap-2">
+          <div className="animate-spin">
+            <Activity className="w-5 h-5 text-blue-500" />
+          </div>
+          <span className="text-blue-500 font-semibold text-sm">Initializing... Scraping races and winners...</span>
+        </div>
+      )}
+
       <div className="mb-6 border-b border-border pb-4 w-full">
         <div className="flex items-center justify-between gap-3 mb-4">
           <div className="flex items-center gap-3">
@@ -134,45 +205,37 @@ const Index = () => {
             onDataFetched={handleDataFetched}
             isGlobalLoading={isGlobalLoading}
             setIsGlobalLoading={setIsGlobalLoading}
-            disabled={isTimerActive}
+            disabled={isTimerActive || isInitialLoad}
           />
            <AutoRefreshTimer
             onRefresh={handleAutoRefresh}
             onTimerStateChange={handleTimerStateChange}
-            disabled={isGlobalLoading}
+            disabled={isGlobalLoading || isInitialLoad}
           />
           <ScheduleButton
             onDataFetched={handleDataFetched}
             isGlobalLoading={isGlobalLoading}
             setIsGlobalLoading={setIsGlobalLoading}
-            disabled={isTimerActive}
-          />         
-          
+            disabled={isTimerActive || isInitialLoad}
+          />
+
           <Button
-              onClick={() => downloadDashboardData(displayData, activeRacecourses, favorites)}
-              variant="outline"
-              size="sm"
-              className="text-button sm:hidden"
-              disabled={activeRacecourses.size === 0 || isGlobalLoading}
-              title="Download CSV"
-            >
-              <Download className="w-4 h-4" />
-            </Button>
+            onClick={async () => {
+              // Download using winners data from frontend (WinnersPanel)
+              await downloadDashboardData(racecourcesWithRaces, undefined, dataTitle, winnersData);
+            }}
+            variant="outline"
+            size="sm"
+            className="text-button"
+            disabled={racecourcesWithRaces.length === 0 || isGlobalLoading || isWinnersPanelLoading}
+            title={isWinnersPanelLoading ? "Updating winners data..." : "Download Excel with all racing data"}
+          >
+            <Download className="w-4 h-4" />
+            <span className="ml-2 max-sm:hidden">Download</span>
+          </Button>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-2 items-start sm:items-center w-full sm:w-auto">
-
-          <Button
-              onClick={() => downloadDashboardData(displayData, activeRacecourses, favorites)}
-              variant="outline"
-              size="sm"
-              className="text-button max-sm:hidden"
-              disabled={activeRacecourses.size === 0 || isGlobalLoading}
-              title="Download CSV"
-            >
-              <Download className="w-4 h-4" />
-            </Button>
-
             <div className="w-full">
               <TextZoomSlider />
             </div>
@@ -193,7 +256,7 @@ const Index = () => {
         <div className="flex justify-between items-center gap-2 w-full">
           <div className="flex flex-wrap gap-2 w-full">
             {
-            displayData.map(rc => (
+            racecourcesWithRaces.map(rc => (
               <Button
                 key={rc.name}
                 onClick={() => toggleRacecourse(rc.name)}
@@ -220,7 +283,7 @@ const Index = () => {
             </div>
           )}
 
-          {displayData
+          {racecourcesWithRaces
             .filter(rc => activeRacecourses.has(rc.name))
             .map(rc => (
               <RaceTable
@@ -244,7 +307,12 @@ const Index = () => {
 
         {activeRacecourses.size > 0 && (
           <div className="sticky top-4 self-start">
-            <MarketMovers favorites={favorites} />
+            <WinnersPanel 
+              autoRefreshInterval={300000}
+              racecourseData={racecourcesWithRaces.filter(rc => activeRacecourses.has(rc.name))}
+              onLoadingChange={setIsWinnersPanelLoading}
+              onWinnersUpdate={setWinnersData}
+            />
           </div>
         )}
       </div>

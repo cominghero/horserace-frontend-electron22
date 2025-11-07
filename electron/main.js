@@ -1,7 +1,7 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow, ipcMain, dialog } from 'electron';
 import { fileURLToPath } from 'url';
 import { dirname, join, extname } from 'path';
-import { spawn } from 'child_process';
+import { spawn, execSync } from 'child_process';
 import { createServer } from 'http';
 import { readFile } from 'fs/promises';
 
@@ -66,13 +66,49 @@ function startFrontendServer() {
 }
 
 /**
+ * Check if Node.js is installed on the system
+ */
+function checkNodeInstalled() {
+  try {
+    const nodeVersion = execSync('node --version', { encoding: 'utf8' }).trim();
+    console.log('Node.js found:', nodeVersion);
+    return true;
+  } catch (error) {
+    console.error('Node.js not found:', error);
+    return false;
+  }
+}
+
+/**
+ * Show error dialog when Node.js is not found
+ */
+function showNodeNotFoundDialog() {
+  dialog.showErrorBox(
+    'Node.js Required',
+    'Node.js is not installed on this system.\n\n' +
+    'The Horse Racing Dashboard requires Node.js to run.\n\n' +
+    'Please install Node.js from:\nhttps://nodejs.org/\n\n' +
+    'For Windows 7: Download Node.js v13.14.0 (last version supporting Win 7)\n' +
+    'For Windows 10: Download the LTS version\n\n' +
+    'Restart the application after installation.'
+  );
+  app.quit();
+}
+
+/**
  * Start the Express backend server
  */
 function startBackend() {
+  // Check if Node.js is installed (production only)
+  if (!isDev && !checkNodeInstalled()) {
+    showNodeNotFoundDialog();
+    return;
+  }
+
   const backendPath = isDev
     ? join(__dirname, '..', '..', 'horseraceBackend', 'server.js')
-    : join(process.resourcesPath, 'backend', 'server.js');  
-  
+    : join(process.resourcesPath, 'backend', 'server.js');
+
   console.log('Starting backend server from:', backendPath);
 
   backendProcess = spawn('node', [backendPath], {
@@ -81,17 +117,46 @@ function startBackend() {
       PORT: BACKEND_PORT,
       NODE_ENV: isDev ? 'development' : 'production',
     },
-    stdio: isDev ? 'inherit' : 'ignore', // Hide console in production
+    stdio: isDev ? 'inherit' : 'pipe', // Capture output in production for logging
     windowsHide: true, // Hide window on Windows
     detached: false, // Keep attached to parent process
   });
 
+  // Log backend output in production (for debugging)
+  if (!isDev && backendProcess.stdout) {
+    backendProcess.stdout.on('data', (data) => {
+      console.log('[Backend]', data.toString());
+    });
+  }
+
+  if (!isDev && backendProcess.stderr) {
+    backendProcess.stderr.on('data', (data) => {
+      console.error('[Backend Error]', data.toString());
+    });
+  }
+
   backendProcess.on('error', (error) => {
     console.error('Failed to start backend:', error);
+    if (!isDev) {
+      dialog.showErrorBox(
+        'Backend Error',
+        'Failed to start the backend server.\n\n' +
+        'Error: ' + error.message + '\n\n' +
+        'Please check that Node.js is properly installed.'
+      );
+    }
   });
 
   backendProcess.on('exit', (code) => {
     console.log(`Backend process exited with code ${code}`);
+    if (code !== 0 && code !== null && !isDev) {
+      dialog.showErrorBox(
+        'Backend Stopped',
+        `The backend server stopped unexpectedly (exit code: ${code}).\n\n` +
+        'The application may not function properly.\n\n' +
+        'Please restart the application.'
+      );
+    }
   });
 }
 

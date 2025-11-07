@@ -36,6 +36,19 @@ const calculateDutchProfit = (odds: number[]): number => {
   return (R - 1) * 100; // Profit percentage
 };
 
+/**
+ * Convert a number to ordinal format (1st, 2nd, 3rd, 4th, etc.)
+ */
+const getOrdinalSuffix = (num: number): string => {
+  const j = num % 10;
+  const k = num % 100;
+  
+  if (j === 1 && k !== 11) return `${num}st`;
+  if (j === 2 && k !== 12) return `${num}nd`;
+  if (j === 3 && k !== 13) return `${num}rd`;
+  return `${num}th`;
+};
+
 export const RaceTable = ({ racecourse, rounds, horseNumberFilter = "" }: RaceTableProps) => {
   // Parse comma-separated horse numbers from filter
   const getFilteredNumbers = (): Set<number> => {
@@ -50,6 +63,11 @@ export const RaceTable = ({ racecourse, rounds, horseNumberFilter = "" }: RaceTa
 
   const filteredNumbers = getFilteredNumbers();
 
+  // Get full sorted horses list (without filter) - used for original position tracking
+  const getFullSortedHorses = (horses: Horse[]) => {
+    return [...horses].sort((a, b) => a.odds - b.odds);
+  };
+
   // Sort horses by odds (placeFixed value) - ascending order
   const getSortedHorses = (horses: Horse[]) => {
     const sorted = [...horses].sort((a, b) => a.odds - b.odds);
@@ -58,6 +76,12 @@ export const RaceTable = ({ racecourse, rounds, horseNumberFilter = "" }: RaceTa
       return sorted.filter(horse => filteredNumbers.has(horse.number));
     }
     return sorted;
+  };
+
+  // Get original position index from full sorted list
+  const getOriginalPositionIndex = (horse: Horse, horses: Horse[]): number => {
+    const fullSorted = getFullSortedHorses(horses);
+    return fullSorted.findIndex(h => h.number === horse.number);
   };
 
   // Get horses with valid odds (not 0) for T2/T3/Top3 calculations
@@ -129,13 +153,20 @@ export const RaceTable = ({ racecourse, rounds, horseNumberFilter = "" }: RaceTa
                     </React.Fragment>
                   );
 
+                  const originalPositionIdx = getOriginalPositionIndex(horse, round.horses);
+
                   return (
                     <React.Fragment key={`${round.roundNumber}-${idx}`}>
                       <td className="px-1 py-1.5 text-center font-mono font-semibold text-foreground border-r border-border/50">
                         {horse.number}
                       </td>
-                      <td className="px-1 py-1.5 text-center font-mono text-foreground border-r border-border/50">
-                        {horse.position}
+                      <td className={`px-1 py-1.5 text-center font-mono font-semibold border-r border-border/50 ${
+                        originalPositionIdx === 0 ? 'text-yellow-300' : 
+                        originalPositionIdx === 1 ? 'text-gray-200' : 
+                        originalPositionIdx === 2 ? 'text-blue-300' : 
+                        'text-orange-500'
+                      }`}>
+                        {getOrdinalSuffix(originalPositionIdx + 1)}
                       </td>
                       <td className="px-1 py-1.5 text-left font-mono text-muted-foreground border-r border-border/50 truncate text-other">
                         {horse.name}
@@ -205,7 +236,7 @@ export const RaceTable = ({ racecourse, rounds, horseNumberFilter = "" }: RaceTa
             )}
 
             {/* Top3 Row - Shows top 3 horse numbers in comma-separated format (only horses with valid odds) */}
-            {rounds.some(round => getHorsesWithValidOdds(round.horses).length >= 3) && (
+            {/* {rounds.some(round => getHorsesWithValidOdds(round.horses).length >= 3) && (
               <tr className="bg-secondary/30 border-t border-border">
                 <td className="px-2 py-1.5 border-r border-border font-semibold text-accent text-table">Top3</td>
                 {rounds.map((round) => {
@@ -225,7 +256,7 @@ export const RaceTable = ({ racecourse, rounds, horseNumberFilter = "" }: RaceTa
                   );
                 })}
               </tr>
-            )}
+            )} */}
 
             {/* Top6 Row - Shows top 6 horse numbers in comma-separated format (only horses with valid odds) */}
             {rounds.some(round => getHorsesWithValidOdds(round.horses).length >= 6) && (

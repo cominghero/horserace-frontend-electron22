@@ -13,9 +13,12 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "electron:dev": "concurrently \"npm run dev\" \"wait-on http://localhost:8000 && electron .\"",
-    "electron:build": "npm run build && electron-builder",
-    "electron:build:win": "npm run build && electron-builder --win",
-    "electron:build:dir": "npm run build && electron-builder --dir",
+    "prebuild": "cd ../horseraceBackend && npm install --omit=dev",
+    "electron:build": "npm run prebuild && npm run build && electron-builder",
+    "electron:build:win": "npm run prebuild && npm run build && electron-builder --win --publish never",
+    "electron:build:win7": "npm run prebuild && npm run build && electron-builder --win --ia32 --publish never",
+    "electron:build:win7:x64": "npm run prebuild && npm run build && electron-builder --win --x64 --publish never",
+    "electron:build:dir": "npm run prebuild && npm run build && electron-builder --dir",
     "postinstall": "electron-builder install-app-deps"
   },
   "build": {
@@ -28,7 +31,8 @@
     "files": [
       "dist/**/*",
       "electron/**/*",
-      "package.json"
+      "package.json",
+      "README_FOR_USERS.txt"
     ],
     "asarUnpack": [
       "dist/**/*"
@@ -60,17 +64,22 @@
           ]
         }
       ],
-      "artifactName": "${productName}-${version}-${arch}.${ext}"
+      "artifactName": "${productName}-Win7-10-${version}-${arch}.${ext}",
+      "requestedExecutionLevel": "asInvoker",
+      "verifyUpdateCodeSignature": false
     },
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "Horse Racing Dashboard"
+      "shortcutName": "Horse Racing Dashboard (Win 7/10)",
+      "perMachine": false,
+      "allowElevation": true,
+      "warningsAsErrors": false
     },
     "portable": {
-      "artifactName": "${productName}-${version}-portable.exe"
+      "artifactName": "${productName}-Win7-10-${version}-portable.exe"
     }
   },
   "dependencies": {
@@ -128,13 +137,13 @@
   "devDependencies": {
     "@eslint/js": "^9.32.0",
     "@tailwindcss/typography": "^0.5.16",
-    "@types/node": "^22.16.5",
+    "@types/node": "^14.18.0",
     "@types/react": "^18.3.23",
     "@types/react-dom": "^18.3.7",
     "@vitejs/plugin-react-swc": "^3.11.0",
     "autoprefixer": "^10.4.21",
     "concurrently": "^8.2.2",
-    "electron": "^22.3.27",
+    "electron": "^13.6.9",
     "electron-builder": "^24.9.1",
     "electron-is-dev": "^3.0.1",
     "eslint": "^9.32.0",

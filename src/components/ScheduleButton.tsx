@@ -42,6 +42,10 @@ export const ScheduleButton = ({ onDataFetched, isGlobalLoading, setIsGlobalLoad
     threeDaysLater.setDate(threeDaysLater.getDate() + 3);
 
     return {
+      today: {
+        label: `Today (${formatDate(today)})`,
+        value: 'today' // Use 'today' string
+      },
       tomorrow: {
         label: `Tomorrow (${formatDate(tomorrow)})`,
         value: 'tomorrow' // Use 'tomorrow' string instead of date
@@ -115,6 +119,13 @@ export const ScheduleButton = ({ onDataFetched, isGlobalLoading, setIsGlobalLoad
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start">
+        <DropdownMenuItem
+          onClick={() => !isGlobalLoading && handleScrape(dates.today.value, dates.today.label)}
+          disabled={isGlobalLoading}
+          className="cursor-pointer"
+        >
+          {dates.today.label}
+        </DropdownMenuItem>
         <DropdownMenuItem
           onClick={() => !isGlobalLoading && handleScrape(dates.tomorrow.value, dates.tomorrow.label)}
           disabled={isGlobalLoading}

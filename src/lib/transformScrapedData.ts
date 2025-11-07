@@ -38,15 +38,23 @@ export interface TransformedRacecourseData {
 /**
  * Convert scraped race data to the format expected by RaceTable
  * Handles the merged structure: racetrack -> completedRaces array with horses
+ * @param scrapedRacetracks - Array of racetrack data from scraper
+ * @param isScheduleView - Whether this is a schedule view (upcoming races). If true, skip first race.
  */
 export const transformScrapedData = (
-  scrapedRacetracks: ScrapedRacetrack[]
+  scrapedRacetracks: ScrapedRacetrack[],
+  isScheduleView: boolean = false
 ): TransformedRacecourseData[] => {
-  return scrapedRacetracks.map((trackData) => {
+  return scrapedRacetracks.map((trackData, trackIndex) => {
     const { racetrack, completedRaces } = trackData;
 
+    // Skip the first race of the first racetrack only if it's a schedule view
+    const racesToProcess = (trackIndex === 0 && isScheduleView)
+      ? completedRaces.slice(1)  // Skip first race for first racetrack in schedule view
+      : completedRaces;          // Keep all races otherwise
+
     // Transform each race into a Round
-    const rounds: Round[] = completedRaces.map((race) => {
+    const rounds: Round[] = racesToProcess.map((race) => {
       // Extract race number from raceNumber string (e.g., "R1" -> 1)
       const raceNumberMatch = race.raceNumber.match(/\d+/);
       const roundNumber = raceNumberMatch ? parseInt(raceNumberMatch[0]) : 0;
